@@ -1,0 +1,193 @@
+			
+ JSON - using 2D Collection (k-v) : Map/Properties
+ JSON Syntax: { "mapKey" : mapValue, "mapKey": mapValue.... }
+
+*)In java Map,Properties are collections, in JSON they behaves like Objects.
+
+class Student {
+   int sid;
+   Map<String,Integer> marks;
+   //Properties marks;
+}
+Object:
+Student s = new Student(101, Map.of("ENG",58,"MAT",65,"SCI",85));
+JSON Format:
+{
+  "sid"   : 101,
+  "marks" : {
+               "ENG" : 58,
+	       "MAT" : 65,
+	       "SCI" : 85
+            }
+
+}  
+-------------------------------------------------------------------
+			JSON for HAS-A Relation
+-------------------------------------------------------------------
+
+HAS-A (Association Mapping):
+ Using child as a DataType and creating one variable inside Parent.
+
+JSON Syntax:
+{
+  // parent object
+  "hasAVariable" : {
+                       //child object
+                   }
+ 
+}
+   ========================================================================
+		   Spring Boot ReST with JSON 
+   ========================================================================
+MediaType annotations: Supports data conversions.
+They are 2 in Spring Boot ReST:
+a. @RequestBody : It works on Http Request(Read from Body Section)
+     Global data Format(XML/JSON) can be converted into Object Format.
+     This converted object is taken as method parameter in RestController.
+
+b. @ResponseBody: It works on Http Response(Write to Body Section)
+    Object data can be converted into Global data Format(XML/JSON)
+    Method ReturnType (non-String type) is converted into Global Format.
+
+*) Request/Response must have Content-Type Header param based on Content(Data) in Body.
+*) Spring Boot default supports JSON. No Default support given for XML.
+   If we want to work on XML dependencies must be added externally.
+
+*) @ResponseBody is auto-applied by @RestController. No need of writing this annotation again.
+*) It will check return type first, if it is String type then Content-Type: text/plain
+   else content-Type: application/json.
+
+   It means String return 'No Conversion by @ResponseBody'. 
+   @ResponseBody converts data for Class/CollectionType..only
+
+===Code==========
+1. Create one Starter Project
+Name : SpringBoot2MediaTypeOutputEx
+Dep  : web, lombok, devtools
+
+2. Model classes
+
+package in.nareshit.raghu.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Contract {
+
+	private Integer cid;
+	private String ccode;
+	private Double camt;
+}
+--------
+package in.nareshit.raghu.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Vendor {
+
+	private String venCode;
+	private String venAddr;
+	private Contract con;
+}
+--------
+package in.nareshit.raghu.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Product {
+
+	private Integer pid;
+	private String pcode;
+	private Double pcost;
+}
+------------
+#3. RestController class
+package in.nareshit.raghu.controller;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import in.nareshit.raghu.model.Contract;
+import in.nareshit.raghu.model.Product;
+import in.nareshit.raghu.model.Vendor;
+
+@RestController
+public class ProductRestController {
+
+	//1.  Primitive(String)
+	@GetMapping("/a")
+	public String showA() {
+		return "Hello Text Data!";
+	}
+	
+	//2. Class/Object
+	@GetMapping("/b")
+	public Product showB() {
+		return new Product(10,"PEN",500.0);
+	}
+	
+	
+	//3. List/Set Type
+	@GetMapping("/c")
+	public List<Product> showC() {
+		return List.of(
+				new Product(101,"A",400.0),
+				new Product(102,"B",500.0),
+				new Product(103,"C",600.0)
+				);
+	}
+	
+	//4. Map/Properties Type
+	@GetMapping("/d")
+	public Map<String,String> showD() {
+		return Map.of(
+					"P1","ABC",
+					"P2","NIT",
+					"P3","MNO"
+				);
+	}
+	
+	@GetMapping("/d2")
+	public Map<String,Product> showD2() {
+		return Map.of(
+					"P1",new Product(101,"A",400.0),
+					"P2",new Product(102,"B",500.0),
+					"P3",new Product(103,"C",600.0)
+				);
+	}
+	
+	//5. HAS-A Type
+	@GetMapping("/e")
+	public Vendor showE() {
+		return new Vendor(
+				"AA-NIT", 
+				"HYD", 
+				new Contract(550, "HTC-EM", 50000.0)
+				);
+	}
+	
+	//6. Using Any Type + ResponseEntity
+	// TODO 
+	
+	
+}
+
+Add Google Chrome Extension : JSON View
+https://chrome.google.com/webstore/detail/jsonview/chklaanhfefbnpoihckbnefhakgolnmc?hl=en
