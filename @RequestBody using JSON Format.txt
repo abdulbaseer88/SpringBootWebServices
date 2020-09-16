@@ -1,0 +1,143 @@
+			Date : 16/09/2020
+			Spring Boot 7:50PM
+			  Mr. RAGHU
+	--------------------------------------------------
+	  Working with @ResponseBody in XML Format
+
+<dependency>
+    <groupId>com.fasterxml.jackson.dataformat</groupId>
+    <artifactId>jackson-dataformat-xml</artifactId>
+</dependency>
+
+Content Negotiation:- 
+ Based on Request Type, producer is giving Content and Content-Type is called
+ Content Negotiation.
+
+*) It can be done using Request Header Param 'Accept:______'
+*) Accept Header param is provided in Request Header, but it speaks about response content.
+*) By Default Spring Boot ReST output type is JSON only (for non-string type).
+  To get XML output use above dependency(jackson-dataformat-xml) and provide header param as
+    Accept : application/xml
+*) If Producer application has no Dependency for XML, still Request Header has
+    Accept : application/xml then Producer says : Http Status: 406 Not Acceptable.
+
+*) comment selected content: ctrl+shift+/  , uncomment : ctrl+shift+\
+
+=============Example=====================================
+#1 Create one Starter Project
+Name : SpringBoot2ReSTXmlOutput
+Dep : Spring web, lombok, jackson-dataformat-xml
+
+<dependency>
+    <groupId>com.fasterxml.jackson.dataformat</groupId>
+    <artifactId>jackson-dataformat-xml</artifactId>
+</dependency>
+
+#2. Model class
+package in.nareshit.raghu.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Employee {
+
+	private Integer eid;
+	private String ename;
+	private Double esal;
+}
+
+#3. RestController
+
+package in.nareshit.raghu.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import in.nareshit.raghu.model.Employee;
+
+@RestController
+public class EmployeeRestController {
+
+	@GetMapping("/emp")
+	public Employee getEmp() {
+		return new Employee(10,"A",3.3);
+	}
+}
+	-------------------------------------------------------------------------
+		   @RequestBody using JSON Format
+
+*) If we are sending input (method param/Request) JSON/XML data to producer application,
+   Producer App should convert Global data into Object format and should be given as
+   method param based on class type provided.
+   It can be done using @RequestBody.
+
+*) Synatx:
+  @RequestBody ClassName objectName
+  
+Q) What is mean by JSON - { } ?
+A) Creating object using default constrcutor. All variables holds default values.
+   If any variable value is not sent then constrcutor provides default values to those
+   variables.
+
+===Example===============
+#1. Create Spring Starter Project
+Name : SpringBoot2RequestJsonEx
+Dep  : Spring web, lombok, jackson-dataformat-xml
+
+#2. Model class
+package in.nareshit.raghu.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Employee {
+
+	private Integer eid;
+	private String ename;
+	private Double esal;
+}
+
+#3 RestController
+package in.nareshit.raghu.controller;
+
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import in.nareshit.raghu.model.Employee;
+
+@RestController
+public class EmployeeRestController {
+
+	@PostMapping("/save")
+	public String saveEmp(
+			@RequestBody Employee employee)
+	{
+		return employee.toString();
+	}
+}
+
+--POSTMAN SCREEN--
+Body using raw--JSON/XML
+<Employee> <eid>101</eid> <ename>ABC</ename><esal>5.5</esal> </Employee>
+
+
+*) If XML Dependency is not added and trying to XML data using RequestBody then
+   Http Status is : 415 Unsupported MediaTypes.
+
+-----------------------------------------------
+Q) Match Below ?
+1. @RequestBody  2. @ResponseBody ,  3. 406-Not Acceptable, 4. 415-UnsupportedMediaTypes
+
+RequestBody(Sending XML, Not supported)- 415-UnsupportedMediaTypes
+ResponseBody (expected Output type as XML, not supported) 406-Not Acceptable
+
+Q) Can we send/receive global type either in same or different formats?
+A) YES.  Ex: input-XML, output-JSON possible.
