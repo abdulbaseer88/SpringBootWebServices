@@ -1,0 +1,264 @@
+
+*) Passing Parameters using Request:-
+a. Request Parameter | Query Parameter
+b. Path Variable **
+
+a. Request Parameter | Query Parameter:-
+  
+=>  Sending data using URL (URL?key=val) to application is called as Request Param.
+=>  This concept is given by Servlets(web applications) in java.
+    Same is also used at Spring MVC and Spring ReST.
+
+Syntax:
+ @RequestParam("key")DataType localVariable
+    --or--
+ @RequestParam DataType key
+
+--Example--
+*)RestController code
+package in.nareshit.raghu.rest;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class StudentRestController {
+
+	//.. /data?id=__&code=__ (Query Parameters)
+	@GetMapping("/data")
+	public String showData(
+			@RequestParam Integer id,
+			@RequestParam String code
+			) 
+	{
+		
+		return "Data is : " + id + "-" + code;
+	}
+}
+--POSTMAN SCREEN---------------------------------
+GET  http://localhost:8080/data?id=9&code=A  SEND
+-------------------------------------------------
+b. Path Variable **:-
+   Sending data using URL as Path (without any key) as direct value.
+   No Query String (?) construction required.
+
+Path : 2 types
+-> Static path :  /path  : It indicates URL/Path at Controller or method
+-> Dynamic path:  /{key} : It indicates data sending using URL.
+                           (In this place a values comes at runtime)
+--Examples--
+Path: /find/{id}
+ Static Path : /find
+ Dynamic Path: /{id}  
+
+-> To Read Dynamic Path as a value use below syntax:
+   @PathVariable("key")DataType localVariable
+      --or--
+   @PathVariable DataType key
+
+---Example---
+package in.nareshit.raghu.rest;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class StudentRestController {
+
+	//.../info/10/TV
+	@GetMapping("/info/{id}/{code}")
+	public String showDataB(
+			@PathVariable Integer id,
+			@PathVariable String code
+			) 
+	{
+		return "Path variable data is: " + id + "-" + code;
+	}
+}
+------------POSTMAN SCREEN----------------------
+GET   http://localhost:8080/info/10/TV  SEND
+--------------------------------------------------
+
+=========================================================
+Q1) Can we send keys in any order using  Request Parameter?
+A) YES. No need to follow order
+/data?id=10&code=A
+/data?code=A&id=10
+
+Q2) Can we send keys in any order using Path Variable?
+A) NO. They must be sent in defined order only.
+  URL: /data/{id}/{code}
+  Ex:  /data/10/TV   (correct)
+      /data/TV/10    (Invaild)
+
+ If any type is not matched then:
+  "status": 400,
+  "error": "Bad Request"
+  MethodArgumentTypeMismatchException(NumberFormatException)
+
+ *) If both are String types then Excption will not occure , but wrong execution will be done
+
+Q3) Which is called clean URL / which takes less chars to send data from 
+    client to Server using URL?
+A) Compared to RequestParam , PathVariable is called as Clean URL
+   and even it takes less chars to send data.
+
+*** RequestParam : Used mostly in WEB MVC (UI)
+*** PathVariable : Used at ReST based applications
+
+*) Java (all)Web technologies will support RequestParam as it is basic concept.
+   But PathVariable is not supported as basic.
+
+===================================================================
+Note: If given request matched multiple methods for PathVariable then 
+       Priority is given for highest static count.
+
+Controller:
+package in.nareshit.raghu.rest;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class StudentRestController {
+
+	@GetMapping("/show/id/code")
+	public String showA() {
+		return "FROM-A";
+	}
+	
+	
+	@GetMapping("/show/id/{code}")
+	public String showB(
+			@PathVariable String code
+			) 
+	{
+		return "FROM-B :" + code;
+	}
+	
+	@GetMapping("/show/{id}/{code}")
+	public String showC(
+			@PathVariable Integer id,
+			@PathVariable String code
+			) 
+	{
+		return "FROM-C :" + id + "-" + code;
+	}
+}
+Req#1
+http://localhost:8080/show/10/TV
+
+Ans:____
+Req#2
+http://localhost:8080/show/id/code
+
+Ans:___
+
+Req#3
+http://localhost:8080/show/id/TV
+
+Ans:___
+
+----Ex#3-----------------------------------------------------------
+Controller code:
+
+package in.nareshit.raghu.rest;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class StudentRestController {
+
+
+	@GetMapping("/data/one/{two}")
+	public String showA(
+			@PathVariable String two
+			) 
+	{
+		return "SHOW-A=>" + two;
+	}
+	
+	@GetMapping("/data/{one}/two")
+	public String showB(
+			@PathVariable String one
+			) 
+	{
+		return "SHOW-B=>" + one;
+	}
+}
+
+
+Req#1
+http://localhost:8080/data/one/ABC
+Ans:__
+Req#2
+http://localhost:8080/data/XYZ/two
+Ans:__
+Req#3
+http://localhost:8080/data/one/two
+Ans:__
+Note:2 If Given Request using PathVariable has matched multiple methods
+  having same static count then status 500,
+    Internal Server Error,llegalStateException: Ambiguous handler methods mapped.
+----Ex#4---------------------------------------------------------------------------
+package in.nareshit.raghu.rest;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class StudentRestController {
+	@GetMapping("/find/{id}")
+	public String readValues(
+			@PathVariable String id
+			)
+	{
+		return "Data is =>" + id;
+	}
+}
+
+
+Req#1
+http://localhost:8080/find/10
+
+Ans: Data is =>10
+
+Req#2
+http://localhost:8080/find
+*) If no.of levels of Path is not matched
+  then Status: 404, Not Found
+
+---Ex#5---------------------------
+package in.nareshit.raghu.rest;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class StudentRestController {
+
+
+	@GetMapping("/find/{id}")
+	public String readValues(
+			@PathVariable(name = "id", required = false) String id
+			)
+	{
+		return "Data is =>" + id;
+	}
+}
+Req#1
+http://localhost:8080/find/10
+
+Ans: Data is =>10
+
+Req#2
+http://localhost:8080/find
+*)Expected null , but giving 404: Not Found
